@@ -1,0 +1,3112 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Banque Horizon+</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root {
+    --primary-blue: #1A3D7C;
+    --secondary-blue: #2A4D9E;
+    --accent-orange: #FF7A00;
+    --light-orange: #FF9A42;
+    --background: #eef2ff;
+    --card-bg: #ffffff;
+    --success: #28a745;
+    --warning: #ffc107;
+    --danger: #dc3545;
+    --info: #17a2b8;
+    --text-dark: #1A3D7C;
+    --text-light: #6c757d;
+    --shadow: 0 10px 20px rgba(0,0,0,0.1);
+    --radius: 15px;
+}
+
+/* Thème sombre */
+body.dark-theme {
+    --primary-blue: #2A4D9E;
+    --secondary-blue: #1A3D7C;
+    --background: #121212;
+    --card-bg: #1e1e1e;
+    --text-dark: #e0e0e0;
+    --text-light: #a0a0a0;
+    --shadow: 0 10px 20px rgba(0,0,0,0.3);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Montserrat', sans-serif;
+    background: var(--background);
+    color: var(--text-dark);
+    overflow-x: hidden;
+    line-height: 1.6;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+/* Header amélioré avec contrôles */
+header {
+    background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
+    color: white;
+    padding: 15px 20px;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.logo-container i {
+    font-size: 2.2rem;
+    color: var(--accent-orange);
+}
+
+header h1 {
+    font-size: 1.8rem;
+    letter-spacing: 1px;
+    font-weight: 700;
+}
+
+.header-controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.control-btn {
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.9rem;
+}
+
+.control-btn:hover {
+    background: var(--accent-orange);
+    transform: translateY(-2px);
+}
+
+.notification-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: var(--danger);
+    color: white;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    font-size: 0.7rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+nav {
+    margin-top: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    max-width: 1200px;
+    margin: 10px auto 0;
+}
+
+nav button {
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+}
+
+nav button:hover {
+    background: var(--accent-orange);
+    transform: translateY(-2px);
+}
+
+nav button.active {
+    background: var(--accent-orange);
+}
+
+/* Notifications */
+.notifications-panel {
+    position: fixed;
+    top: 70px;
+    right: 20px;
+    width: 350px;
+    max-height: 400px;
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    z-index: 1001;
+    overflow-y: auto;
+    display: none;
+}
+
+.notifications-panel.show {
+    display: block;
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.notification-item {
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.notification-item:hover {
+    background: rgba(0,0,0,0.03);
+}
+
+.notification-item.unread {
+    background: rgba(255, 122, 0, 0.1);
+    border-left: 3px solid var(--accent-orange);
+}
+
+/* Contenu principal */
+main {
+    max-width: 1200px;
+    margin: 30px auto;
+    padding: 0 20px;
+}
+
+/* Cartes améliorées */
+.card {
+    background: var(--card-bg);
+    padding: 25px;
+    margin: 20px 0;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    transition: all 0.3s ease;
+    animation: fadeIn 0.5s;
+    border-left: 5px solid var(--accent-orange);
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+}
+
+.card-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    color: var(--primary-blue);
+    font-size: 1.5rem;
+}
+
+.card-title i {
+    color: var(--accent-orange);
+}
+
+/* Section de connexion */
+.login-section {
+    max-width: 500px;
+    margin: 40px auto;
+}
+
+.tabs {
+    display: flex;
+    margin-bottom: 25px;
+    border-bottom: 2px solid #eee;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 15px;
+    background: none;
+    border: none;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-light);
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+}
+
+.tab-btn.active {
+    color: var(--primary-blue);
+}
+
+.tab-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: var(--accent-orange);
+    border-radius: 3px;
+}
+
+.tab-content {
+    display: none;
+    animation: fadeIn 0.5s;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: var(--primary-blue);
+}
+
+.input-with-icon {
+    position: relative;
+}
+
+.input-with-icon i {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-light);
+}
+
+.input-with-icon input, .input-with-icon select, .input-with-icon textarea {
+    width: 100%;
+    padding: 15px 15px 15px 45px;
+    border-radius: 10px;
+    border: 2px solid #e0e0e0;
+    font-size: 1rem;
+    transition: all 0.3s;
+    background: var(--card-bg);
+    color: var(--text-dark);
+}
+
+.input-with-icon input:focus, .input-with-icon select:focus, .input-with-icon textarea:focus {
+    border-color: var(--accent-orange);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(255, 122, 0, 0.2);
+}
+
+button.action {
+    background: linear-gradient(to right, var(--accent-orange), var(--light-orange));
+    color: white;
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 15px 30px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+button.action:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 7px 15px rgba(255, 122, 0, 0.3);
+}
+
+button.action:active {
+    transform: translateY(0);
+}
+
+/* Dashboard amélioré */
+.welcome-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.solde-container {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+
+.solde-card {
+    flex: 1;
+    min-width: 200px;
+    background: linear-gradient(135deg, rgba(26, 61, 124, 0.1), rgba(42, 77, 158, 0.1));
+    padding: 20px;
+    border-radius: var(--radius);
+    border-left: 4px solid var(--primary-blue);
+}
+
+.solde-card.epargne {
+    border-left-color: var(--success);
+}
+
+.solde-card h4 {
+    font-size: 0.9rem;
+    color: var(--text-light);
+    margin-bottom: 10px;
+}
+
+.solde-display {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--primary-blue);
+}
+
+.solde-display.epargne {
+    color: var(--success);
+}
+
+.solde-up {
+    color: var(--success);
+}
+
+.solde-down {
+    color: var(--danger);
+}
+
+/* Badges et récompenses */
+.badges-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.badge {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    padding: 15px;
+    border-radius: var(--radius);
+    text-align: center;
+    width: 120px;
+    transition: all 0.3s;
+    border: 2px solid transparent;
+}
+
+.badge.earned {
+    background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+    border-color: var(--warning);
+}
+
+.badge i {
+    font-size: 2rem;
+    color: var(--accent-orange);
+    margin-bottom: 10px;
+}
+
+.badge.earned i {
+    color: var(--warning);
+}
+
+/* Quick actions */
+.quick-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.quick-action-card {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    padding: 20px;
+    border-radius: var(--radius);
+    text-align: center;
+    transition: all 0.3s;
+    cursor: pointer;
+    border: 2px solid transparent;
+}
+
+.quick-action-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow);
+    border-color: var(--accent-orange);
+}
+
+.quick-action-card i {
+    font-size: 2.5rem;
+    color: var(--accent-orange);
+    margin-bottom: 15px;
+}
+
+/* Catégories de dépenses */
+.categories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.category-item {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.category-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.category-item i {
+    font-size: 1.5rem;
+    color: var(--primary-blue);
+    margin-bottom: 10px;
+}
+
+/* Chatbot */
+.chatbot-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 350px;
+    height: 500px;
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    z-index: 1000;
+    display: none;
+    flex-direction: column;
+}
+
+.chatbot-container.show {
+    display: flex;
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.chatbot-header {
+    background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
+    color: white;
+    padding: 15px;
+    border-radius: var(--radius) var(--radius) 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.chatbot-messages {
+    flex: 1;
+    padding: 15px;
+    overflow-y: auto;
+}
+
+.message {
+    margin-bottom: 15px;
+    padding: 10px 15px;
+    border-radius: 15px;
+    max-width: 80%;
+}
+
+.message.bot {
+    background: #f0f0f0;
+    align-self: flex-start;
+}
+
+.message.user {
+    background: var(--accent-orange);
+    color: white;
+    align-self: flex-end;
+    margin-left: auto;
+}
+
+.chatbot-input {
+    display: flex;
+    padding: 15px;
+    border-top: 1px solid #eee;
+}
+
+.chatbot-input input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    margin-right: 10px;
+}
+
+/* Section GAB */
+.gab-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 25px;
+}
+
+.gab-card {
+    background: linear-gradient(135deg, #d9e7ff, #c2d5ff);
+    padding: 25px;
+    border-radius: var(--radius);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+}
+
+/* Historique */
+#hist {
+    max-height: 300px;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+#hist li {
+    padding: 12px 15px;
+    margin-bottom: 10px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid var(--accent-orange);
+    animation: slideIn 0.5s forwards;
+    opacity: 0;
+    transform: translateX(-20px);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#hist li:nth-child(odd) {
+    background: #f1f5ff;
+}
+
+@keyframes slideIn {
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Chart */
+.chart-container {
+    width: 100%;
+    height: 300px;
+    margin-top: 30px;
+    background: white;
+    padding: 20px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+}
+
+/* Messages */
+.message-box {
+    padding: 15px;
+    border-radius: 10px;
+    margin: 15px 0;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    animation: fadeIn 0.5s;
+}
+
+.message-box.success {
+    background: rgba(40, 167, 69, 0.15);
+    color: var(--success);
+    border-left: 4px solid var(--success);
+}
+
+.message-box.error {
+    background: rgba(220, 53, 69, 0.15);
+    color: var(--danger);
+    border-left: 4px solid var(--danger);
+}
+
+.message-box.warning {
+    background: rgba(255, 193, 7, 0.15);
+    color: var(--warning);
+    border-left: 4px solid var(--warning);
+}
+
+.message-box.info {
+    background: rgba(23, 162, 184, 0.15);
+    color: var(--info);
+    border-left: 4px solid var(--info);
+}
+
+/* Footer */
+footer {
+    background: var(--primary-blue);
+    color: white;
+    text-align: center;
+    padding: 25px;
+    margin-top: 50px;
+}
+
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+footer p {
+    opacity: 0.9;
+    margin-top: 10px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    header h1 {
+        font-size: 1.5rem;
+    }
+    
+    .header-top {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    nav {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    nav button {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .solde-display {
+        font-size: 1.8rem;
+    }
+    
+    .welcome-section {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .gab-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .chatbot-container {
+        width: calc(100% - 40px);
+        height: 400px;
+    }
+    
+    .notifications-panel {
+        width: calc(100% - 40px);
+        right: 20px;
+    }
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.pulse {
+    animation: pulse 2s infinite;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Scrollbar personnalisée */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--accent-orange);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--light-orange);
+}
+</style>
+</head>
+<body>
+
+<header>
+    <div class="header-top">
+        <div class="logo-container">
+            <i class="fas fa-university"></i>
+            <div>
+                <h1>Banque Khalil - GIGA ULTIME PRO+</h1>
+                <p style="font-size: 0.9rem; opacity: 0.9;">Votre banque 100% digitale intelligente</p>
+            </div>
+        </div>
+        
+        <div class="header-controls" id="headerControls" class="hidden">
+            <button class="control-btn" onclick="toggleTheme()" id="themeToggle">
+                <i class="fas fa-moon"></i> Thème
+            </button>
+            <button class="control-btn" onclick="toggleNotifications()" id="notificationsBtn">
+                <i class="fas fa-bell"></i>
+                <span class="notification-badge" id="notificationCount">0</span>
+            </button>
+            <button class="control-btn" onclick="toggleChatbot()">
+                <i class="fas fa-robot"></i> Assistant
+            </button>
+            <button class="control-btn" onclick="showSection('admin')">
+                <i class="fas fa-cog"></i> Admin
+            </button>
+        </div>
+    </div>
+    
+    <nav id="navSecu" class="hidden">
+        <button onclick="showSection('dashboard')" id="navDashboard">
+            <i class="fas fa-tachometer-alt"></i> Dashboard
+        </button>
+        <button onclick="showSection('gab')" id="navGab">
+            <i class="fas fa-credit-card"></i> GAB
+        </button>
+        <button onclick="showSection('loan')" id="navLoan" class="hidden">
+            <i class="fas fa-hand-holding-usd"></i> Prêt
+        </button>
+        <button onclick="showSection('savings')" id="navSavings" class="hidden">
+            <i class="fas fa-piggy-bank"></i> Épargne
+        </button>
+        <button onclick="showSection('budget')" id="navBudget" class="hidden">
+            <i class="fas fa-chart-pie"></i> Budget
+        </button>
+        <button onclick="showSection('invest')" id="navInvest" class="hidden">
+            <i class="fas fa-chart-line"></i> Investir
+        </button>
+        <button onclick="showSection('goals')" id="navGoals" class="hidden">
+            <i class="fas fa-bullseye"></i> Objectifs
+        </button>
+        <button onclick="showSection('contact')" id="navContact">
+            <i class="fas fa-envelope"></i> Contact
+        </button>
+        <button onclick="logout()" id="navLogout">
+            <i class="fas fa-sign-out-alt"></i> Déconnexion
+        </button>
+    </nav>
+</header>
+
+<!-- Panel Notifications -->
+<div class="notifications-panel" id="notificationsPanel">
+    <div style="padding: 15px; border-bottom: 1px solid #eee; background: var(--primary-blue); color: white;">
+        <h4 style="margin: 0;"><i class="fas fa-bell"></i> Notifications</h4>
+    </div>
+    <div id="notificationsList">
+        <!-- Les notifications seront ajoutées ici dynamiquement -->
+    </div>
+</div>
+
+<!-- Chatbot -->
+<div class="chatbot-container" id="chatbot">
+    <div class="chatbot-header">
+        <div>
+            <h4 style="margin: 0;"><i class="fas fa-robot"></i> Assistant Khalil</h4>
+            <small>Comment puis-je vous aider ?</small>
+        </div>
+        <button onclick="toggleChatbot()" style="background: none; border: none; color: white; cursor: pointer;">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    <div class="chatbot-messages" id="chatMessages">
+        <div class="message bot">
+            Bonjour ! Je suis votre assistant bancaire. Comment puis-je vous aider aujourd'hui ?
+        </div>
+    </div>
+    <div class="chatbot-input">
+        <input type="text" id="chatInput" placeholder="Tapez votre message...">
+        <button class="action" onclick="sendChatMessage()" style="width: auto; padding: 10px 20px;">
+            <i class="fas fa-paper-plane"></i>
+        </button>
+    </div>
+</div>
+
+<main>
+    <!-- Section de connexion / inscription -->
+    <div id="loginSection" class="card login-section">
+        <h2 class="card-title"><i class="fas fa-lock"></i> Accès sécurisé</h2>
+        
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('login')">Connexion</button>
+            <button class="tab-btn" onclick="switchTab('register')">Créer un compte</button>
+            <button class="tab-btn" onclick="switchTab('demo')">Mode Démo</button>
+        </div>
+        
+        <div id="loginTab" class="tab-content active">
+            <div class="form-group">
+                <label for="l_user">Identifiant</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-user"></i>
+                    <input id="l_user" placeholder="Votre identifiant">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="l_pass">Mot de passe</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-key"></i>
+                    <input id="l_pass" type="password" placeholder="Votre mot de passe">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="l_2fa">Code 2FA (optionnel)</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-shield-alt"></i>
+                    <input id="l_2fa" placeholder="123456" maxlength="6">
+                </div>
+                <small>Code à 6 chiffres pour l'authentification à deux facteurs</small>
+            </div>
+            
+            <button class="action" onclick="login()">
+                <i class="fas fa-sign-in-alt"></i> Se connecter
+            </button>
+            
+            <div class="message-box warning" id="loginMessage">
+                <i class="fas fa-info-circle"></i>
+                <span>Comptes de test : test/1234 ou client/5678</span>
+            </div>
+        </div>
+        
+        <div id="registerTab" class="tab-content">
+            <div class="form-group">
+                <label for="r_user">Identifiant</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-user-plus"></i>
+                    <input id="r_user" placeholder="Choisissez un identifiant">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="r_pass">Mot de passe</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-lock"></i>
+                    <input id="r_pass" type="password" placeholder="Choisissez un mot de passe">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="r_solde">Dépôt initial (MAD)</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-money-bill-wave"></i>
+                    <input id="r_solde" type="number" placeholder="Ex: 1000" min="0" value="1000">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="r_email">Email</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-at"></i>
+                    <input id="r_email" type="email" placeholder="votre@email.com">
+                </div>
+            </div>
+            
+            <button class="action" onclick="register()">
+                <i class="fas fa-user-check"></i> Créer mon compte
+            </button>
+            
+            <div class="message-box success" id="registerMessage">
+                <i class="fas fa-shield-alt"></i>
+                <span>Vos données sont sécurisées localement</span>
+            </div>
+        </div>
+        
+        <div id="demoTab" class="tab-content">
+            <div class="message-box info">
+                <i class="fas fa-play-circle"></i>
+                <span>Explorez toutes les fonctionnalités sans créer de compte</span>
+            </div>
+            
+            <p>Le mode démo vous permet de :</p>
+            <ul style="margin: 15px 0 15px 20px;">
+                <li>Tester toutes les fonctionnalités</li>
+                <li>Accéder à des données de démonstration</li>
+                <li>Explorer l'interface complète</li>
+                <li>Simuler des transactions</li>
+            </ul>
+            
+            <button class="action" onclick="enterDemoMode()">
+                <i class="fas fa-play"></i> Démarrer le mode démo
+            </button>
+        </div>
+    </div>
+
+    <!-- Dashboard principal -->
+    <div id="dashboard" class="hidden">
+        <div class="card">
+            <div class="welcome-section">
+                <div>
+                    <h2 class="card-title"><i class="fas fa-user-circle"></i> Bonjour <span id="userName"></span></h2>
+                    <p>Bienvenue dans votre espace client intelligent</p>
+                </div>
+                <div>
+                    <div class="solde-display" id="solde">0.00 MAD</div>
+                    <p>Solde principal</p>
+                </div>
+            </div>
+            
+            <div class="solde-container">
+                <div class="solde-card">
+                    <h4><i class="fas fa-wallet"></i> Compte Courant</h4>
+                    <div class="solde-display" id="soldeCourant">0.00 MAD</div>
+                    <p style="color: var(--text-light); font-size: 0.9rem;">Solde disponible</p>
+                </div>
+                <div class="solde-card epargne">
+                    <h4><i class="fas fa-piggy-bank"></i> Compte Épargne</h4>
+                    <div class="solde-display epargne" id="soldeEpargne">0.00 MAD</div>
+                    <p style="color: var(--text-light); font-size: 0.9rem;">+2.5% d'intérêt annuel</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Badges et récompenses -->
+        <div class="card" id="badgesSection">
+            <h3 class="card-title"><i class="fas fa-trophy"></i> Vos Badges</h3>
+            <div class="badges-container" id="badgesContainer">
+                <!-- Badges seront ajoutés dynamiquement -->
+            </div>
+        </div>
+
+        <div class="quick-actions">
+            <div class="quick-action-card" onclick="document.getElementById('amount').focus()">
+                <i class="fas fa-exchange-alt"></i>
+                <h3>Virement</h3>
+                <p>Envoyer de l'argent</p>
+            </div>
+            
+            <div class="quick-action-card" onclick="showSection('gab')">
+                <i class="fas fa-credit-card"></i>
+                <h3>Retrait</h3>
+                <p>Retirer au GAB</p>
+            </div>
+            
+            <div class="quick-action-card" onclick="showSection('loan')">
+                <i class="fas fa-hand-holding-usd"></i>
+                <h3>Demander un prêt</h3>
+                <p>Jusqu'à 10 000 MAD</p>
+            </div>
+            
+            <div class="quick-action-card" onclick="showSection('savings')">
+                <i class="fas fa-piggy-bank"></i>
+                <h3>Épargner</h3>
+                <p>+2.5% d'intérêt</p>
+            </div>
+            
+            <div class="quick-action-card" onclick="showSection('budget')">
+                <i class="fas fa-chart-pie"></i>
+                <h3>Budget</h3>
+                <p>Gérer vos dépenses</p>
+            </div>
+            
+            <div class="quick-action-card" onclick="showSection('goals')">
+                <i class="fas fa-bullseye"></i>
+                <h3>Objectifs</h3>
+                <p>Suivre vos projets</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3 class="card-title"><i class="fas fa-exchange-alt"></i> Effectuer un virement</h3>
+            
+            <div class="form-group">
+                <label for="dest">Destinataire</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-user-friends"></i>
+                    <input id="dest" placeholder="Identifiant du destinataire">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="amount">Montant (MAD)</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-money-bill-wave"></i>
+                    <input id="amount" type="number" placeholder="Montant à envoyer">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="virementCategorie">Catégorie</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-tag"></i>
+                    <select id="virementCategorie">
+                        <option value="general">Général</option>
+                        <option value="famille">Famille</option>
+                        <option value="amis">Amis</option>
+                        <option value="factures">Factures</option>
+                        <option value="loisirs">Loisirs</option>
+                        <option value="cadeau">Cadeau</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="virementDescription">Description (optionnel)</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-comment"></i>
+                    <input id="virementDescription" placeholder="Description du virement">
+                </div>
+            </div>
+            
+            <button class="action" onclick="virement()">
+                <i class="fas fa-paper-plane"></i> Envoyer le virement
+            </button>
+            
+            <div id="virementMsg"></div>
+        </div>
+
+        <div class="card">
+            <h3 class="card-title"><i class="fas fa-history"></i> Historique récent</h3>
+            <ul id="hist"></ul>
+            <button class="action" onclick="showAllTransactions()" style="width: auto; margin-top: 15px;">
+                <i class="fas fa-list"></i> Voir tout l'historique
+            </button>
+        </div>
+
+        <div class="card">
+            <h3 class="card-title"><i class="fas fa-chart-line"></i> Évolution de vos comptes</h3>
+            <div class="chart-container">
+                <canvas id="soldeChart"></canvas>
+            </div>
+            <div style="display: flex; gap: 15px; margin-top: 15px;">
+                <button class="action" onclick="exportPDF()" style="width: auto; flex: 1;">
+                    <i class="fas fa-file-pdf"></i> Exporter PDF
+                </button>
+                <button class="action" onclick="exportCSV()" style="width: auto; flex: 1;">
+                    <i class="fas fa-file-csv"></i> Exporter CSV
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- GAB -->
+    <div id="gab" class="hidden">
+        <div class="card">
+            <h2 class="card-title"><i class="fas fa-credit-card"></i> Distributeur Automatique</h2>
+            <p>Simulez les opérations de retrait et de consultation</p>
+            
+            <div class="gab-container">
+                <div class="gab-card">
+                    <h4><i class="fas fa-sign-in-alt"></i> Connexion GAB</h4>
+                    <div class="form-group">
+                        <label for="gab_pin">Code PIN</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-lock"></i>
+                            <input id="gab_pin" type="password" placeholder="Votre code PIN à 4 chiffres" maxlength="4">
+                        </div>
+                    </div>
+                    <button class="action" onclick="gabLogin()">
+                        <i class="fas fa-check-circle"></i> Valider
+                    </button>
+                    <div id="gabStatus"></div>
+                </div>
+
+                <div class="gab-card">
+                    <h4><i class="fas fa-wallet"></i> Consultation solde</h4>
+                    <p>Consultez votre solde disponible</p>
+                    <button class="action" onclick="gabSolde()">
+                        <i class="fas fa-eye"></i> Voir mon solde
+                    </button>
+                    <div class="solde-display" id="gabSolde">--.-- MAD</div>
+                </div>
+
+                <div class="gab-card">
+                    <h4><i class="fas fa-money-bill-wave"></i> Retrait d'espèces</h4>
+                    <div class="form-group">
+                        <label for="gabRetraitAmount">Montant (MAD)</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-money-bill-wave"></i>
+                            <input id="gabRetraitAmount" type="number" placeholder="Montant à retirer" min="20" step="20">
+                        </div>
+                    </div>
+                    <button class="action" onclick="gabRetrait()">
+                        <i class="fas fa-cash-register"></i> Retirer
+                    </button>
+                    <div id="gabRetraitMsg"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section Prêt -->
+    <div id="loan" class="hidden">
+        <div class="card">
+            <h2 class="card-title"><i class="fas fa-hand-holding-usd"></i> Demande de prêt</h2>
+            
+            <div class="form-group">
+                <label for="loanAmount">Montant du prêt (MAD)</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-money-bill-wave"></i>
+                    <input id="loanAmount" type="number" placeholder="Montant souhaité" min="100" max="100000" step="100">
+                </div>
+                <small>Montant maximum: 100 000 MAD</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="loanDuration">Durée (mois)</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-calendar-alt"></i>
+                    <input id="loanDuration" type="number" placeholder="Durée en mois" min="6" max="60" value="12">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="loanPurpose">Motif du prêt</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-comment"></i>
+                    <input id="loanPurpose" placeholder="Ex: Achat voiture, Travaux...">
+                </div>
+            </div>
+            
+            <button class="action" onclick="requestLoan()">
+                <i class="fas fa-file-contract"></i> Soumettre ma demande
+            </button>
+            
+            <div id="loanMsg"></div>
+            
+            <div class="message-box info">
+                <i class="fas fa-info-circle"></i>
+                <span>Simulation: Taux d'intérêt fixe de 3.5%. Votre demande sera traitée sous 48h.</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section Épargne -->
+    <div id="savings" class="hidden">
+        <div class="card">
+            <h2 class="card-title"><i class="fas fa-piggy-bank"></i> Compte Épargne</h2>
+            
+            <div class="solde-container">
+                <div class="solde-card epargne" style="flex: 2;">
+                    <h4><i class="fas fa-coins"></i> Épargne Totale</h4>
+                    <div class="solde-display epargne" id="totalEpargne">0.00 MAD</div>
+                    <p style="color: var(--success);">+2.5% d'intérêt annuel</p>
+                </div>
+                <div class="solde-card" style="flex: 1;">
+                    <h4><i class="fas fa-calendar-alt"></i> Intérêts mensuels</h4>
+                    <div class="solde-display" id="interetsMensuels">0.00 MAD</div>
+                    <p style="color: var(--text-light);">Estimés</p>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="epargneAmount">Montant à épargner (MAD)</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-money-bill-wave"></i>
+                    <input id="epargneAmount" type="number" placeholder="Montant à transférer">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="epargneFrequence">Fréquence</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-redo"></i>
+                    <select id="epargneFrequence">
+                        <option value="once">Une fois</option>
+                        <option value="monthly">Mensuel</option>
+                        <option value="weekly">Hebdomadaire</option>
+                    </select>
+                </div>
+            </div>
+            
+            <button class="action" onclick="transferToSavings()">
+                <i class="fas fa-piggy-bank"></i> Transférer vers l'épargne
+            </button>
+            
+            <button class="action" onclick="transferFromSavings()" style="background: linear-gradient(to right, var(--secondary-blue), var(--primary-blue)); margin-top: 10px;">
+                <i class="fas fa-arrow-left"></i> Retirer de l'épargne
+            </button>
+            
+            <div id="epargneMsg"></div>
+        </div>
+    </div>
+
+    <!-- Section Budget -->
+    <div id="budget" class="hidden">
+        <div class="card">
+            <h2 class="card-title"><i class="fas fa-chart-pie"></i> Gestion Budgétaire</h2>
+            
+            <div class="categories-grid">
+                <div class="category-item" onclick="setBudgetCategory('alimentation')">
+                    <i class="fas fa-utensils"></i>
+                    <h4>Alimentation</h4>
+                    <p id="budgetAlimentation">0 MAD</p>
+                </div>
+                <div class="category-item" onclick="setBudgetCategory('transport')">
+                    <i class="fas fa-car"></i>
+                    <h4>Transport</h4>
+                    <p id="budgetTransport">0 MAD</p>
+                </div>
+                <div class="category-item" onclick="setBudgetCategory('loisirs')">
+                    <i class="fas fa-film"></i>
+                    <h4>Loisirs</h4>
+                    <p id="budgetLoisirs">0 MAD</p>
+                </div>
+                <div class="category-item" onclick="setBudgetCategory('shopping')">
+                    <i class="fas fa-shopping-cart"></i>
+                    <h4>Shopping</h4>
+                    <p id="budgetShopping">0 MAD</p>
+                </div>
+                <div class="category-item" onclick="setBudgetCategory('logement')">
+                    <i class="fas fa-home"></i>
+                    <h4>Logement</h4>
+                    <p id="budgetLogement">0 MAD</p>
+                </div>
+                <div class="category-item" onclick="setBudgetCategory('sante')">
+                    <i class="fas fa-heartbeat"></i>
+                    <h4>Santé</h4>
+                    <p id="budgetSante">0 MAD</p>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="budgetCategory">Catégorie</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-tag"></i>
+                    <select id="budgetCategory">
+                        <option value="alimentation">Alimentation</option>
+                        <option value="transport">Transport</option>
+                        <option value="loisirs">Loisirs</option>
+                        <option value="shopping">Shopping</option>
+                        <option value="logement">Logement</option>
+                        <option value="sante">Santé</option>
+                        <option value="autre">Autre</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="budgetAmount">Budget mensuel (MAD)</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-money-bill-wave"></i>
+                    <input id="budgetAmount" type="number" placeholder="Montant du budget">
+                </div>
+            </div>
+            
+            <button class="action" onclick="setBudget()">
+                <i class="fas fa-save"></i> Définir le budget
+            </button>
+            
+            <div id="budgetMsg"></div>
+            
+            <div class="chart-container" style="height: 250px;">
+                <canvas id="budgetChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section Objectifs -->
+    <div id="goals" class="hidden">
+        <div class="card">
+            <h2 class="card-title"><i class="fas fa-bullseye"></i> Vos Objectifs</h2>
+            
+            <div id="goalsList">
+                <!-- Objectifs seront ajoutés dynamiquement -->
+            </div>
+            
+            <h3 style="margin: 25px 0 15px 0;">Créer un nouvel objectif</h3>
+            
+            <div class="form-group">
+                <label for="goalName">Nom de l'objectif</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-bullseye"></i>
+                    <input id="goalName" placeholder="Ex: Nouvelle voiture, Voyage...">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="goalAmount">Montant cible (MAD)</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-money-bill-wave"></i>
+                    <input id="goalAmount" type="number" placeholder="Montant à atteindre">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="goalDeadline">Date limite</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-calendar"></i>
+                    <input id="goalDeadline" type="date">
+                </div>
+            </div>
+            
+            <button class="action" onclick="createGoal()">
+                <i class="fas fa-plus-circle"></i> Créer l'objectif
+            </button>
+            
+            <div id="goalMsg"></div>
+        </div>
+    </div>
+
+    <!-- Section Investissement -->
+    <div id="invest" class="hidden">
+        <div class="card">
+            <h2 class="card-title"><i class="fas fa-chart-line"></i> Simulateur d'Investissement</h2>
+            
+            <div class="message-box info">
+                <i class="fas fa-info-circle"></i>
+                <span>Simulation éducative - Ces produits comportent des risques</span>
+            </div>
+            
+            <div class="form-group">
+                <label for="investAmount">Montant à investir (MAD)</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-money-bill-wave"></i>
+                    <input id="investAmount" type="number" placeholder="Montant" value="1000">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="investDuration">Durée (années)</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-calendar-alt"></i>
+                    <input id="investDuration" type="number" placeholder="Durée" value="5" min="1" max="30">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="investType">Type d'investissement</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-chart-bar"></i>
+                    <select id="investType">
+                        <option value="conservateur">Conservateur (2-4%)</option>
+                        <option value="equilibre">Équilibré (4-6%)</option>
+                        <option value="dynamique">Dynamique (6-8%)</option>
+                        <option value="risque">À risque (8-12%)</option>
+                    </select>
+                </div>
+            </div>
+            
+            <button class="action" onclick="simulateInvestment()">
+                <i class="fas fa-calculator"></i> Simuler
+            </button>
+            
+            <div id="investResult" style="margin-top: 20px;"></div>
+            
+            <div class="chart-container" style="height: 250px; margin-top: 20px;">
+                <canvas id="investChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section Admin -->
+    <div id="admin" class="hidden">
+        <div class="card">
+            <h2 class="card-title"><i class="fas fa-cog"></i> Administration</h2>
+            
+            <div class="message-box warning">
+                <i class="fas fa-shield-alt"></i>
+                <span>Espace réservé à l'administrateur</span>
+            </div>
+            
+            <h3>Statistiques globales</h3>
+            <div class="solde-container">
+                <div class="solde-card">
+                    <h4>Utilisateurs</h4>
+                    <div class="solde-display" id="adminUsers">0</div>
+                </div>
+                <div class="solde-card">
+                    <h4>Total des dépôts</h4>
+                    <div class="solde-display" id="adminDeposits">0 MAD</div>
+                </div>
+                <div class="solde-card">
+                    <h4>Transactions</h4>
+                    <div class="solde-display" id="adminTransactions">0</div>
+                </div>
+            </div>
+            
+            <h3 style="margin-top: 25px;">Gestion des utilisateurs</h3>
+            <div id="adminUsersList">
+                <!-- Liste des utilisateurs -->
+            </div>
+            
+            <button class="action" onclick="exportAllData()" style="margin-top: 20px;">
+                <i class="fas fa-database"></i> Exporter toutes les données
+            </button>
+            
+            <button class="action" onclick="clearAllData()" style="background: linear-gradient(to right, var(--danger), #c82333); margin-top: 10px;">
+                <i class="fas fa-trash"></i> Réinitialiser toutes les données
+            </button>
+        </div>
+    </div>
+
+    <!-- Contact -->
+    <div id="contact" class="hidden">
+        <div class="card">
+            <h2 class="card-title"><i class="fas fa-envelope"></i> Contactez-nous</h2>
+            
+            <div class="form-group">
+                <label for="c_name">Nom complet</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-user"></i>
+                    <input id="c_name" placeholder="Votre nom et prénom">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="c_email">Adresse email</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-at"></i>
+                    <input id="c_email" type="email" placeholder="votre@email.com">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="c_msg">Message</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-comment-dots"></i>
+                    <textarea id="c_msg" placeholder="Votre message..." rows="5"></textarea>
+                </div>
+            </div>
+            
+            <button class="action" onclick="sendContact()">
+                <i class="fas fa-paper-plane"></i> Envoyer le message
+            </button>
+            
+            <div id="contactMsg"></div>
+            
+            <div class="message-box success">
+                <i class="fas fa-phone-alt"></i>
+                <span>Service client: 0 800 123 456 (gratuit) - Ouvert du lundi au vendredi de 9h à 18h</span>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer>
+    <div class="footer-content">
+        <h3>Banque Khalil - GIGA ULTIME PRO+</h3>
+        <p>© 2023 - Application bancaire sécurisée - Tous droits réservés</p>
+        <p><i class="fas fa-shield-alt"></i> Vos données sont stockées localement sur votre appareil</p>
+        <p style="margin-top: 10px; font-size: 0.9rem;">
+            <button onclick="toggleTheme()" style="background: none; border: 1px solid white; color: white; padding: 5px 15px; border-radius: 20px; cursor: pointer; margin: 0 5px;">
+                <i class="fas fa-moon"></i> Thème
+            </button>
+            <button onclick="toggleChatbot()" style="background: none; border: 1px solid white; color: white; padding: 5px 15px; border-radius: 20px; cursor: pointer; margin: 0 5px;">
+                <i class="fas fa-robot"></i> Assistant
+            </button>
+            <button onclick="enterDemoMode()" style="background: none; border: 1px solid white; color: white; padding: 5px 15px; border-radius: 20px; cursor: pointer; margin: 0 5px;">
+                <i class="fas fa-play"></i> Démo
+            </button>
+        </p>
+    </div>
+</footer>
+
+<script>
+// ================================
+// BASE DE DONNÉES ÉTENDUE
+// ================================
+
+let users = JSON.parse(localStorage.getItem("users")) || [];
+let currentUser = null;
+let chart = null;
+let budgetChart = null;
+let investChart = null;
+let loanRequests = JSON.parse(localStorage.getItem("loanRequests")) || [];
+let notifications = JSON.parse(localStorage.getItem("notifications")) || [];
+let badges = JSON.parse(localStorage.getItem("badges")) || {};
+let budgets = JSON.parse(localStorage.getItem("budgets")) || {};
+let goals = JSON.parse(localStorage.getItem("goals")) || [];
+let isDemoMode = false;
+
+// Données de démonstration
+const demoData = {
+    user: {
+        u: "demo",
+        p: "demo123",
+        s: 5000,
+        s_epargne: 2000,
+        h: [
+            "Compte créé - Dépôt initial: 5000 MAD",
+            "Virement reçu: +500 MAD de Employeur",
+            "Retrait GAB: -100 MAD",
+            "Achat en ligne: -49.99 MAD Amazon",
+            "Virement envoyé: -200 MAD à Ami",
+            "Salaire: +2500 MAD",
+            "Épargne: +300 MAD vers compte épargne",
+            "Facture électricité: -85 MAD"
+        ],
+        soldeHistory: [5000, 5500, 5400, 5350.01, 5150.01, 7650.01, 7350.01, 7265.01],
+        loans: [],
+        email: "demo@banque-khalil.com",
+        badges: ["premier_pas", "epargnant", "virement_maitre"],
+        budgets: {
+            alimentation: 400,
+            transport: 200,
+            loisirs: 300,
+            shopping: 150
+        },
+        goals: [
+            { name: "Nouveau smartphone", target: 800, current: 450, deadline: "2024-06-01" },
+            { name: "Vacances d'été", target: 2000, current: 1200, deadline: "2024-07-15" }
+        ]
+    },
+    badgesList: [
+        { id: "premier_pas", name: "Premier pas", icon: "fa-footsteps", description: "Première connexion" },
+        { id: "epargnant", name: "Épargnant", icon: "fa-piggy-bank", description: "Premier versement épargne" },
+        { id: "virement_maitre", name: "Maître des virements", icon: "fa-exchange-alt", description: "5 virements effectués" },
+        { id: "budget_pro", name: "Pro du budget", icon: "fa-chart-pie", description: "Budget défini" },
+        { id: "goal_setter", name: "Goal Setter", icon: "fa-bullseye", description: "Objectif créé" },
+        { id: "investisseur", name: "Investisseur", icon: "fa-chart-line", description: "Simulation d'investissement" }
+    ]
+};
+
+// Initialisation des données si vide
+if (users.length === 0) {
+    users = [
+        {
+            u: "test",
+            p: "1234",
+            s: 2500,
+            s_epargne: 500,
+            h: ["Compte créé - Dépôt initial: 2500 MAD", "Épargne: +200 MAD", "Virement: -100 MAD à Ami"],
+            soldeHistory: [2500, 2400, 2300],
+            loans: [],
+            email: "test@email.com",
+            badges: ["premier_pas"],
+            budgets: {},
+            goals: []
+        },
+        {
+            u: "client",
+            p: "5678",
+            s: 5000,
+            s_epargne: 1500,
+            h: ["Compte créé - Dépôt initial: 5000 MAD", "Épargne: +500 MAD"],
+            soldeHistory: [5000, 4500],
+            loans: [],
+            email: "client@email.com",
+            badges: ["premier_pas", "epargnant"],
+            budgets: { alimentation: 300, transport: 150 },
+            goals: [{ name: "Voiture", target: 10000, current: 3000, deadline: "2024-12-31" }]
+        }
+    ];
+    localStorage.setItem("users", JSON.stringify(users));
+}
+
+// Initialisation des badges
+if (Object.keys(badges).length === 0) {
+    badges = {
+        premier_pas: { name: "Premier pas", icon: "fa-footsteps", description: "Première connexion" },
+        epargnant: { name: "Épargnant", icon: "fa-piggy-bank", description: "Premier versement épargne" },
+        virement_maitre: { name: "Maître des virements", icon: "fa-exchange-alt", description: "5 virements effectués" },
+        budget_pro: { name: "Pro du budget", icon: "fa-chart-pie", description: "Budget défini" },
+        goal_setter: { name: "Goal Setter", icon: "fa-bullseye", description: "Objectif créé" },
+        investisseur: { name: "Investisseur", icon: "fa-chart-line", description: "Simulation d'investissement" }
+    };
+    localStorage.setItem("badges", JSON.stringify(badges));
+}
+
+// ================================
+// FONCTIONS UTILITAIRES
+// ================================
+
+function showMessage(elementId, message, type = "info") {
+    let element = document.getElementById(elementId);
+    if (!element) return;
+    
+    element.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'}"></i> ${message}`;
+    element.className = `message-box ${type}`;
+    
+    if (type !== 'warning' && type !== 'info') {
+        setTimeout(() => {
+            element.innerHTML = '';
+            element.className = 'message-box';
+        }, 5000);
+    }
+}
+
+function animateCount(id, end, prefix = "", suffix = " MAD") {
+    let elem = document.getElementById(id);
+    if (!elem) return;
+    
+    let current = parseFloat(elem.innerText.replace(prefix, "").replace(suffix, "")) || 0;
+    let step = (end - current) / 30;
+    let count = 0;
+    
+    let interval = setInterval(() => {
+        count++;
+        current += step;
+        elem.innerText = prefix + current.toFixed(2) + suffix;
+        
+        if (count >= 30) {
+            elem.innerText = prefix + end.toFixed(2) + suffix;
+            clearInterval(interval);
+        }
+    }, 15);
+}
+
+function showSection(id) {
+    // Cacher toutes les sections
+    ["dashboard", "gab", "loan", "savings", "budget", "goals", "invest", "admin", "contact"].forEach(s => {
+        document.getElementById(s)?.classList.add("hidden");
+        document.getElementById(`nav${s.charAt(0).toUpperCase() + s.slice(1)}`)?.classList?.remove("active");
+    });
+    
+    // Afficher la section demandée
+    document.getElementById(id)?.classList.remove("hidden");
+    document.getElementById(`nav${id.charAt(0).toUpperCase() + id.slice(1)}`)?.classList?.add("active");
+    
+    // Mettre à jour les données si nécessaire
+    if (id === 'dashboard') {
+        updateDashboard();
+    } else if (id === 'budget') {
+        updateBudgetDisplay();
+    } else if (id === 'goals') {
+        updateGoalsDisplay();
+    } else if (id === 'admin') {
+        updateAdminPanel();
+    }
+}
+
+// ================================
+// GESTION DES COMPTES
+// ================================
+
+function switchTab(tabName) {
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+    
+    if (tabName === 'login') {
+        document.querySelector('.tab-btn:nth-child(1)').classList.add('active');
+        document.getElementById('loginTab').classList.add('active');
+    } else if (tabName === 'register') {
+        document.querySelector('.tab-btn:nth-child(2)').classList.add('active');
+        document.getElementById('registerTab').classList.add('active');
+    } else {
+        document.querySelector('.tab-btn:nth-child(3)').classList.add('active');
+        document.getElementById('demoTab').classList.add('active');
+    }
+}
+
+function register() {
+    let u = document.getElementById('r_user').value.trim();
+    let p = document.getElementById('r_pass').value.trim();
+    let s = parseFloat(document.getElementById('r_solde').value) || 0;
+    let email = document.getElementById('r_email').value.trim();
+    
+    if (!u || !p || !email) {
+        showMessage('registerMessage', 'Veuillez remplir tous les champs', 'error');
+        return;
+    }
+    
+    if (u.length < 3) {
+        showMessage('registerMessage', 'L\'identifiant doit contenir au moins 3 caractères', 'error');
+        return;
+    }
+    
+    if (p.length < 4) {
+        showMessage('registerMessage', 'Le mot de passe doit contenir au moins 4 caractères', 'error');
+        return;
+    }
+    
+    if (users.find(x => x.u === u)) {
+        showMessage('registerMessage', 'Cet identifiant est déjà utilisé', 'error');
+        return;
+    }
+    
+    // Créer l'utilisateur avec comptes multiples
+    users.push({
+        u: u,
+        p: p,
+        s: s,
+        s_epargne: 0,
+        h: [`Compte créé - Dépôt initial: ${s} MAD`],
+        soldeHistory: [s],
+        loans: [],
+        email: email,
+        badges: ["premier_pas"],
+        budgets: {},
+        goals: [],
+        notifications: []
+    });
+    
+    localStorage.setItem("users", JSON.stringify(users));
+    
+    // Ajouter une notification
+    addNotification(u, "Bienvenue !", "Votre compte a été créé avec succès.", "success");
+    
+    showMessage('registerMessage', `Compte créé avec succès! Votre solde initial est de ${s} MAD`, 'success');
+    
+    // Réinitialiser le formulaire
+    document.getElementById('r_user').value = '';
+    document.getElementById('r_pass').value = '';
+    document.getElementById('r_solde').value = '1000';
+    document.getElementById('r_email').value = '';
+    
+    // Basculer vers l'onglet de connexion
+    setTimeout(() => switchTab('login'), 1500);
+}
+
+function login() {
+    let u = document.getElementById('l_user').value.trim();
+    let p = document.getElementById('l_pass').value.trim();
+    let faCode = document.getElementById('l_2fa').value.trim();
+    
+    // Vérification 2FA simulée
+    if (faCode && faCode !== "123456") {
+        showMessage('loginMessage', 'Code 2FA incorrect', 'error');
+        return;
+    }
+    
+    currentUser = users.find(x => x.u === u && x.p === p);
+    
+    if (!currentUser) {
+        showMessage('loginMessage', 'Identifiant ou mot de passe incorrect', 'error');
+        return;
+    }
+    
+    // Connexion réussie
+    document.getElementById('userName').innerText = currentUser.u;
+    initChart();
+    updateDashboard();
+    
+    // Afficher les sections
+    document.getElementById("loginSection").classList.add("hidden");
+    document.getElementById("navSecu").classList.remove("hidden");
+    document.getElementById("headerControls").classList.remove("hidden");
+    
+    // Afficher les boutons supplémentaires
+    ["navLoan", "navSavings", "navBudget", "navGoals", "navInvest"].forEach(id => {
+        document.getElementById(id)?.classList.remove("hidden");
+    });
+    
+    // Afficher le dashboard
+    showSection("dashboard");
+    
+    // Ajouter une notification
+    addNotification(currentUser.u, "Connexion réussie", "Vous êtes connecté à votre compte.", "info");
+    
+    // Vérifier et attribuer des badges
+    checkAndAwardBadges();
+    
+    // Réinitialiser les champs
+    document.getElementById('l_user').value = '';
+    document.getElementById('l_pass').value = '';
+    document.getElementById('l_2fa').value = '';
+    
+    // Sauvegarder la session
+    localStorage.setItem('lastUser', currentUser.u);
+}
+
+function enterDemoMode() {
+    isDemoMode = true;
+    currentUser = {...demoData.user};
+    
+    document.getElementById('userName').innerText = "Utilisateur Démo";
+    initChart();
+    updateDashboard();
+    
+    // Afficher les sections
+    document.getElementById("loginSection").classList.add("hidden");
+    document.getElementById("navSecu").classList.remove("hidden");
+    document.getElementById("headerControls").classList.remove("hidden");
+    
+    // Afficher tous les boutons
+    ["navLoan", "navSavings", "navBudget", "navGoals", "navInvest"].forEach(id => {
+        document.getElementById(id)?.classList.remove("hidden");
+    });
+    
+    // Afficher le dashboard
+    showSection("dashboard");
+    
+    showMessage('dashboard', "Mode démo activé. Les modifications ne seront pas sauvegardées.", "info");
+}
+
+function logout() {
+    if (isDemoMode) {
+        isDemoMode = false;
+        currentUser = null;
+    }
+    
+    document.getElementById("loginSection").classList.remove("hidden");
+    document.getElementById("navSecu").classList.add("hidden");
+    document.getElementById("headerControls").classList.add("hidden");
+    
+    ["dashboard", "gab", "loan", "savings", "budget", "goals", "invest", "admin", "contact"].forEach(s => {
+        document.getElementById(s)?.classList.add("hidden");
+    });
+    
+    switchTab('login');
+    localStorage.removeItem('lastUser');
+}
+
+// ================================
+// FONCTIONS BANCAIRES
+// ================================
+
+function virement() {
+    if (!currentUser) return;
+    
+    let dest = document.getElementById('dest').value.trim();
+    let amount = parseFloat(document.getElementById('amount').value);
+    let category = document.getElementById('virementCategorie').value;
+    let description = document.getElementById('virementDescription').value.trim();
+    
+    if (!dest || !amount || amount <= 0) {
+        showMessage('virementMsg', 'Veuillez saisir un destinataire et un montant valide', 'error');
+        return;
+    }
+    
+    if (dest === currentUser.u) {
+        showMessage('virementMsg', 'Vous ne pouvez pas vous envoyer un virement à vous-même', 'error');
+        return;
+    }
+    
+    let destinataire = users.find(x => x.u === dest);
+    if (!destinataire) {
+        showMessage('virementMsg', 'Destinataire introuvable', 'error');
+        return;
+    }
+    
+    if (amount > currentUser.s) {
+        showMessage('virementMsg', 'Solde insuffisant', 'error');
+        return;
+    }
+    
+    // Effectuer le virement
+    currentUser.s -= amount;
+    destinataire.s += amount;
+    
+    // Ajouter aux historiques
+    let descText = description ? ` (${description})` : '';
+    currentUser.h.push(`Virement ${category}: -${amount.toFixed(2)} MAD à ${dest}${descText}`);
+    destinataire.h.push(`Virement reçu: +${amount.toFixed(2)} MAD de ${currentUser.u}${descText}`);
+    
+    // Mettre à jour les historiques de solde
+    currentUser.soldeHistory.push(currentUser.s);
+    destinataire.soldeHistory.push(destinataire.s);
+    
+    if (!isDemoMode) {
+        localStorage.setItem("users", JSON.stringify(users));
+    }
+    
+    // Mettre à jour l'affichage
+    showMessage('virementMsg', `Virement de ${amount.toFixed(2)} MAD envoyé à ${dest}`, 'success');
+    animateCount('solde', currentUser.s);
+    animateCount('soldeCourant', currentUser.s);
+    updateChart();
+    updateDashboard();
+    
+    // Vérifier les badges
+    checkVirementBadges();
+    
+    // Ajouter des notifications
+    addNotification(currentUser.u, "Virement effectué", `Vous avez envoyé ${amount.toFixed(2)} MAD à ${dest}`, "info");
+    addNotification(dest, "Virement reçu", `Vous avez reçu ${amount.toFixed(2)} MAD de ${currentUser.u}`, "success");
+    
+    // Réinitialiser les champs
+    document.getElementById('dest').value = '';
+    document.getElementById('amount').value = '';
+    document.getElementById('virementDescription').value = '';
+}
+
+function transferToSavings() {
+    if (!currentUser) return;
+    
+    let amount = parseFloat(document.getElementById('epargneAmount').value);
+    let frequence = document.getElementById('epargneFrequence').value;
+    
+    if (!amount || amount <= 0) {
+        showMessage('epargneMsg', 'Veuillez saisir un montant valide', 'error');
+        return;
+    }
+    
+    if (amount > currentUser.s) {
+        showMessage('epargneMsg', 'Solde insuffisant sur le compte courant', 'error');
+        return;
+    }
+    
+    // Transférer vers l'épargne
+    currentUser.s -= amount;
+    currentUser.s_epargne = (currentUser.s_epargne || 0) + amount;
+    
+    currentUser.h.push(`Épargne: +${amount.toFixed(2)} MAD vers compte épargne`);
+    currentUser.soldeHistory.push(currentUser.s);
+    
+    if (!isDemoMode) {
+        localStorage.setItem("users", JSON.stringify(users));
+    }
+    
+    // Mettre à jour l'affichage
+    showMessage('epargneMsg', `${amount.toFixed(2)} MAD transférés vers l'épargne`, 'success');
+    animateCount('solde', currentUser.s);
+    animateCount('soldeCourant', currentUser.s);
+    animateCount('soldeEpargne', currentUser.s_epargne || 0);
+    animateCount('totalEpargne', currentUser.s_epargne || 0);
+    
+    // Calculer les intérêts mensuels
+    let interetsMensuels = ((currentUser.s_epargne || 0) * 0.025) / 12;
+    document.getElementById('interetsMensuels').innerText = interetsMensuels.toFixed(2) + ' MAD';
+    
+    updateChart();
+    updateDashboard();
+    
+    // Vérifier les badges
+    if (!currentUser.badges.includes('epargnant')) {
+        currentUser.badges.push('epargnant');
+        showMessage('dashboard', "🎉 Nouveau badge débloqué : Épargnant !", "success");
+        updateBadgesDisplay();
+    }
+    
+    document.getElementById('epargneAmount').value = '';
+}
+
+function transferFromSavings() {
+    if (!currentUser) return;
+    
+    let amount = parseFloat(prompt("Montant à retirer de l'épargne :"));
+    
+    if (!amount || amount <= 0) {
+        showMessage('epargneMsg', 'Montant invalide', 'error');
+        return;
+    }
+    
+    if (amount > (currentUser.s_epargne || 0)) {
+        showMessage('epargneMsg', 'Solde épargne insuffisant', 'error');
+        return;
+    }
+    
+    // Retirer de l'épargne
+    currentUser.s_epargne -= amount;
+    currentUser.s += amount;
+    
+    currentUser.h.push(`Retrait épargne: -${amount.toFixed(2)} MAD vers compte courant`);
+    currentUser.soldeHistory.push(currentUser.s);
+    
+    if (!isDemoMode) {
+        localStorage.setItem("users", JSON.stringify(users));
+    }
+    
+    // Mettre à jour l'affichage
+    showMessage('epargneMsg', `${amount.toFixed(2)} MAD retirés de l'épargne`, 'success');
+    animateCount('solde', currentUser.s);
+    animateCount('soldeCourant', currentUser.s);
+    animateCount('soldeEpargne', currentUser.s_epargne || 0);
+    animateCount('totalEpargne', currentUser.s_epargne || 0);
+    
+    updateChart();
+    updateDashboard();
+}
+
+// ================================
+// GAB
+// ================================
+
+function gabLogin() {
+    if (!currentUser) return;
+    
+    let pin = document.getElementById('gab_pin').value;
+    
+    if (pin === currentUser.p.slice(0, 4) || pin === "1234") {
+        showMessage('gabStatus', 'Connexion au GAB réussie', 'success');
+    } else {
+        showMessage('gabStatus', 'Code PIN incorrect', 'error');
+    }
+}
+
+function gabSolde() {
+    if (!currentUser) return;
+    
+    animateCount('gabSolde', currentUser.s);
+    showMessage('gabStatus', 'Solde consulté avec succès', 'success');
+}
+
+function gabRetrait() {
+    if (!currentUser) return;
+    
+    let amount = parseFloat(document.getElementById('gabRetraitAmount').value);
+    
+    if (!amount || amount <= 0) {
+        showMessage('gabRetraitMsg', 'Veuillez saisir un montant valide', 'error');
+        return;
+    }
+    
+    if (amount > currentUser.s) {
+        showMessage('gabRetraitMsg', 'Solde insuffisant', 'error');
+        return;
+    }
+    
+    if (amount % 20 !== 0) {
+        showMessage('gabRetraitMsg', 'Le montant doit être un multiple de 20 MAD', 'error');
+        return;
+    }
+    
+    // Effectuer le retrait
+    currentUser.s -= amount;
+    currentUser.h.push(`Retrait GAB: -${amount.toFixed(2)} MAD`);
+    currentUser.soldeHistory.push(currentUser.s);
+    
+    if (!isDemoMode) {
+        localStorage.setItem("users", JSON.stringify(users));
+    }
+    
+    showMessage('gabRetraitMsg', `Retrait de ${amount.toFixed(2)} MAD effectué avec succès`, 'success');
+    animateCount('solde', currentUser.s);
+    animateCount('gabSolde', currentUser.s);
+    updateChart();
+    updateDashboard();
+    
+    document.getElementById('gabRetraitAmount').value = '';
+}
+
+// ================================
+// PRÊTS
+// ================================
+
+function requestLoan() {
+    if (!currentUser) return;
+    
+    let amount = parseFloat(document.getElementById('loanAmount').value);
+    let duration = parseInt(document.getElementById('loanDuration').value);
+    let purpose = document.getElementById('loanPurpose').value.trim();
+    
+    if (!amount || amount < 100 || amount > 100000) {
+        showMessage('loanMsg', 'Le montant doit être compris entre 100 MAD et 100 000 MAD', 'error');
+        return;
+    }
+    
+    if (!duration || duration < 6 || duration > 60) {
+        showMessage('loanMsg', 'La durée doit être comprise entre 6 et 60 mois', 'error');
+        return;
+    }
+    
+    if (!purpose) {
+        showMessage('loanMsg', 'Veuillez indiquer le motif du prêt', 'error');
+        return;
+    }
+    
+    // Calculer les mensualités
+    let interestRate = 3.5;
+    let monthlyRate = interestRate / 12 / 100;
+    let monthlyPayment = amount * monthlyRate * Math.pow(1 + monthlyRate, duration) / (Math.pow(1 + monthlyRate, duration) - 1);
+    
+    // Enregistrer la demande
+    let loanRequest = {
+        id: Date.now(),
+        user: currentUser.u,
+        amount: amount,
+        duration: duration,
+        purpose: purpose,
+        monthlyPayment: monthlyPayment.toFixed(2),
+        status: 'En attente',
+        date: new Date().toLocaleDateString('fr-FR')
+    };
+    
+    loanRequests.push(loanRequest);
+    
+    if (!isDemoMode) {
+        localStorage.setItem("loanRequests", JSON.stringify(loanRequests));
+    }
+    
+    currentUser.h.push(`Demande de prêt: ${amount} MAD sur ${duration} mois (${purpose})`);
+    
+    if (!isDemoMode) {
+        localStorage.setItem("users", JSON.stringify(users));
+    }
+    
+    showMessage('loanMsg', 
+        `Demande de prêt envoyée!<br>
+        Montant: ${amount} MAD<br>
+        Durée: ${duration} mois<br>
+        Mensualité estimée: ${monthlyPayment.toFixed(2)} MAD<br>
+        <small>Votre demande sera traitée sous 48h.</small>`, 
+        'success');
+    
+    document.getElementById('loanAmount').value = '';
+    document.getElementById('loanDuration').value = '12';
+    document.getElementById('loanPurpose').value = '';
+    
+    updateDashboard();
+}
+
+// ================================
+// BUDGET
+// ================================
+
+function setBudgetCategory(category) {
+    document.getElementById('budgetCategory').value = category;
+    document.getElementById('budgetAmount').focus();
+}
+
+function setBudget() {
+    if (!currentUser) return;
+    
+    let category = document.getElementById('budgetCategory').value;
+    let amount = parseFloat(document.getElementById('budgetAmount').value);
+    
+    if (!amount || amount <= 0) {
+        showMessage('budgetMsg', 'Veuillez saisir un montant valide', 'error');
+        return;
+    }
+    
+    // Définir le budget
+    currentUser.budgets = currentUser.budgets || {};
+    currentUser.budgets[category] = amount;
+    
+    if (!isDemoMode) {
+        localStorage.setItem("users", JSON.stringify(users));
+    }
+    
+    showMessage('budgetMsg', `Budget ${category} défini à ${amount} MAD`, 'success');
+    updateBudgetDisplay();
+    
+    // Vérifier les badges
+    if (!currentUser.badges.includes('budget_pro')) {
+        currentUser.badges.push('budget_pro');
+        showMessage('dashboard', "🎉 Nouveau badge débloqué : Pro du budget !", "success");
+        updateBadgesDisplay();
+    }
+    
+    document.getElementById('budgetAmount').value = '';
+}
+
+function updateBudgetDisplay() {
+    if (!currentUser) return;
+    
+    // Mettre à jour les affichages de budget
+    const categories = ['alimentation', 'transport', 'loisirs', 'shopping', 'logement', 'sante'];
+    categories.forEach(cat => {
+        let elem = document.getElementById(`budget${cat.charAt(0).toUpperCase() + cat.slice(1)}`);
+        if (elem) {
+            elem.textContent = (currentUser.budgets && currentUser.budgets[cat] ? currentUser.budgets[cat] : 0) + ' MAD';
+        }
+    });
+    
+    // Mettre à jour le graphique de budget
+    updateBudgetChart();
+}
+
+function updateBudgetChart() {
+    if (!currentUser || !currentUser.budgets) return;
+    
+    let ctx = document.getElementById('budgetChart')?.getContext('2d');
+    if (!ctx) return;
+    
+    if (budgetChart) {
+        budgetChart.destroy();
+    }
+    
+    const categories = Object.keys(currentUser.budgets);
+    const amounts = Object.values(currentUser.budgets);
+    const colors = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'];
+    
+    budgetChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: categories.map(c => c.charAt(0).toUpperCase() + c.slice(1)),
+            datasets: [{
+                data: amounts,
+                backgroundColor: colors.slice(0, categories.length),
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+}
+
+// ================================
+// OBJECTIFS
+// ================================
+
+function createGoal() {
+    if (!currentUser) return;
+    
+    let name = document.getElementById('goalName').value.trim();
+    let target = parseFloat(document.getElementById('goalAmount').value);
+    let deadline = document.getElementById('goalDeadline').value;
+    
+    if (!name || !target || target <= 0 || !deadline) {
+        showMessage('goalMsg', 'Veuillez remplir tous les champs correctement', 'error');
+        return;
+    }
+    
+    // Créer l'objectif
+    let goal = {
+        name: name,
+        target: target,
+        current: 0,
+        deadline: deadline
+    };
+    
+    currentUser.goals = currentUser.goals || [];
+    currentUser.goals.push(goal);
+    
+    if (!isDemoMode) {
+        localStorage.setItem("users", JSON.stringify(users));
+    }
+    
+    showMessage('goalMsg', `Objectif "${name}" créé avec succès !`, 'success');
+    updateGoalsDisplay();
+    
+    // Vérifier les badges
+    if (!currentUser.badges.includes('goal_setter')) {
+        currentUser.badges.push('goal_setter');
+        showMessage('dashboard', "🎉 Nouveau badge débloqué : Goal Setter !", "success");
+        updateBadgesDisplay();
+    }
+    
+    // Réinitialiser le formulaire
+    document.getElementById('goalName').value = '';
+    document.getElementById('goalAmount').value = '';
+    document.getElementById('goalDeadline').value = '';
+}
+
+function updateGoalsDisplay() {
+    if (!currentUser) return;
+    
+    let container = document.getElementById('goalsList');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    if (!currentUser.goals || currentUser.goals.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: var(--text-light);">Aucun objectif défini</p>';
+        return;
+    }
+    
+    currentUser.goals.forEach((goal, index) => {
+        let progress = (goal.current / goal.target) * 100;
+        let card = document.createElement('div');
+        card.className = 'card';
+        card.style.margin = '10px 0';
+        card.innerHTML = `
+            <h4>${goal.name}</h4>
+            <p>Objectif: ${goal.target} MAD | Actuel: ${goal.current} MAD</p>
+            <div style="background: #eee; height: 10px; border-radius: 5px; margin: 10px 0;">
+                <div style="background: var(--accent-orange); height: 100%; width: ${progress}%; border-radius: 5px;"></div>
+            </div>
+            <p>Date limite: ${goal.deadline}</p>
+            <div style="display: flex; gap: 10px;">
+                <button class="action" onclick="addToGoal(${index})" style="width: auto; padding: 8px 15px;">
+                    <i class="fas fa-plus"></i> Ajouter
+                </button>
+                <button class="action" onclick="removeGoal(${index})" style="width: auto; padding: 8px 15px; background: var(--danger);">
+                    <i class="fas fa-trash"></i> Supprimer
+                </button>
+            </div>
+        `;
+        container.appendChild(card);
+    });
+}
+
+function addToGoal(index) {
+    if (!currentUser || !currentUser.goals || !currentUser.goals[index]) return;
+    
+    let amount = parseFloat(prompt("Montant à ajouter à l'objectif :"));
+    if (!amount || amount <= 0) {
+        showMessage('goalMsg', 'Montant invalide', 'error');
+        return;
+    }
+    
+    if (amount > currentUser.s) {
+        showMessage('goalMsg', 'Solde insuffisant', 'error');
+        return;
+    }
+    
+    // Ajouter à l'objectif
+    currentUser.s -= amount;
+    currentUser.goals[index].current += amount;
+    currentUser.h.push(`Objectif: -${amount.toFixed(2)} MAD vers "${currentUser.goals[index].name}"`);
+    
+    if (!isDemoMode) {
+        localStorage.setItem("users", JSON.stringify(users));
+    }
+    
+    showMessage('goalMsg', `${amount.toFixed(2)} MAD ajoutés à l'objectif`, 'success');
+    updateGoalsDisplay();
+    animateCount('solde', currentUser.s);
+    updateDashboard();
+}
+
+function removeGoal(index) {
+    if (!currentUser || !currentUser.goals || !currentUser.goals[index]) return;
+    
+    if (confirm("Supprimer cet objectif ?")) {
+        currentUser.goals.splice(index, 1);
+        
+        if (!isDemoMode) {
+            localStorage.setItem("users", JSON.stringify(users));
+        }
+        
+        updateGoalsDisplay();
+    }
+}
+
+// ================================
+// INVESTISSEMENT
+// ================================
+
+function simulateInvestment() {
+    let amount = parseFloat(document.getElementById('investAmount').value);
+    let duration = parseInt(document.getElementById('investDuration').value);
+    let type = document.getElementById('investType').value;
+    
+    if (!amount || amount <= 0) {
+        showMessage('investResult', 'Veuillez saisir un montant valide', 'error');
+        return;
+    }
+    
+    // Définir les taux selon le type
+    let minRate, maxRate;
+    switch(type) {
+        case 'conservateur': minRate = 0.02; maxRate = 0.04; break;
+        case 'equilibre': minRate = 0.04; maxRate = 0.06; break;
+        case 'dynamique': minRate = 0.06; maxRate = 0.08; break;
+        case 'risque': minRate = 0.08; maxRate = 0.12; break;
+        default: minRate = 0.04; maxRate = 0.06;
+    }
+    
+    // Calculer les projections
+    let projectionMin = amount * Math.pow(1 + minRate, duration);
+    let projectionMax = amount * Math.pow(1 + maxRate, duration);
+    let gainMin = projectionMin - amount;
+    let gainMax = projectionMax - amount;
+    
+    // Afficher les résultats
+    let result = `
+        <div class="message-box info">
+            <h4>Résultats de la simulation</h4>
+            <p>Montant initial: ${amount.toFixed(2)} MAD</p>
+            <p>Durée: ${duration} ans</p>
+            <p>Projection: ${projectionMin.toFixed(2)} MAD - ${projectionMax.toFixed(2)} MAD</p>
+            <p>Gain potentiel: ${gainMin.toFixed(2)} MAD - ${gainMax.toFixed(2)} MAD</p>
+            <p><small>Ces résultats sont indicatifs et ne garantissent pas les performances futures.</small></p>
+        </div>
+    `;
+    
+    document.getElementById('investResult').innerHTML = result;
+    
+    // Mettre à jour le graphique
+    updateInvestChart(amount, projectionMin, projectionMax, duration);
+    
+    // Vérifier les badges
+    if (currentUser && !currentUser.badges.includes('investisseur')) {
+        currentUser.badges.push('investisseur');
+        showMessage('dashboard', "🎉 Nouveau badge débloqué : Investisseur !", "success");
+        updateBadgesDisplay();
+    }
+}
+
+function updateInvestChart(initial, min, max, years) {
+    let ctx = document.getElementById('investChart')?.getContext('2d');
+    if (!ctx) return;
+    
+    if (investChart) {
+        investChart.destroy();
+    }
+    
+    // Créer des données pour chaque année
+    let labels = [];
+    let minData = [];
+    let maxData = [];
+    
+    for (let i = 0; i <= years; i++) {
+        labels.push(`Année ${i}`);
+        minData.push(initial * Math.pow(1 + 0.02, i)); // Taux minimum
+        maxData.push(initial * Math.pow(1 + 0.12, i)); // Taux maximum
+    }
+    
+    investChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Projection minimale',
+                    data: minData,
+                    borderColor: '#36A2EB',
+                    backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                    fill: true
+                },
+                {
+                    label: 'Projection maximale',
+                    data: maxData,
+                    borderColor: '#FF6384',
+                    backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                    fill: true
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return value.toFixed(0) + ' MAD';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// ================================
+// BADGES ET RÉCOMPENSES
+// ================================
+
+function checkAndAwardBadges() {
+    if (!currentUser) return;
+    
+    // Vérifier le badge "Premier pas" (déjà attribué à la création)
+    if (!currentUser.badges) {
+        currentUser.badges = ["premier_pas"];
+    }
+    
+    // Vérifier les autres badges
+    checkVirementBadges();
+    
+    // Mettre à jour l'affichage
+    updateBadgesDisplay();
+}
+
+function checkVirementBadges() {
+    if (!currentUser) return;
+    
+    // Compter les virements
+    let virementCount = currentUser.h.filter(t => t.includes('Virement')).length;
+    
+    if (virementCount >= 5 && !currentUser.badges.includes('virement_maitre')) {
+        currentUser.badges.push('virement_maitre');
+        showMessage('dashboard', "🎉 Nouveau badge débloqué : Maître des virements !", "success");
+    }
+}
+
+function updateBadgesDisplay() {
+    if (!currentUser) return;
+    
+    let container = document.getElementById('badgesContainer');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    // Afficher tous les badges disponibles
+    Object.keys(badges).forEach(badgeId => {
+        let badge = badges[badgeId];
+        let badgeElem = document.createElement('div');
+        badgeElem.className = `badge ${currentUser.badges?.includes(badgeId) ? 'earned' : ''}`;
+        badgeElem.innerHTML = `
+            <i class="fas ${badge.icon}"></i>
+            <h4>${badge.name}</h4>
+            <small>${badge.description}</small>
+        `;
+        container.appendChild(badgeElem);
+    });
+}
+
+// ================================
+// NOTIFICATIONS
+// ================================
+
+function addNotification(userId, title, message, type = "info") {
+    let notification = {
+        id: Date.now(),
+        userId: userId,
+        title: title,
+        message: message,
+        type: type,
+        timestamp: new Date().toLocaleString('fr-FR'),
+        read: false
+    };
+    
+    notifications.push(notification);
+    
+    if (!isDemoMode) {
+        localStorage.setItem("notifications", JSON.stringify(notifications));
+    }
+    
+    updateNotificationBadge();
+}
+
+function updateNotificationBadge() {
+    if (!currentUser) return;
+    
+    let userNotifications = notifications.filter(n => n.userId === currentUser.u && !n.read);
+    let badge = document.getElementById('notificationCount');
+    if (badge) {
+        badge.textContent = userNotifications.length;
+        badge.style.display = userNotifications.length > 0 ? 'flex' : 'none';
+    }
+}
+
+function toggleNotifications() {
+    let panel = document.getElementById('notificationsPanel');
+    panel.classList.toggle('show');
+    
+    if (panel.classList.contains('show')) {
+        loadNotifications();
+    }
+}
+
+function loadNotifications() {
+    if (!currentUser) return;
+    
+    let list = document.getElementById('notificationsList');
+    let userNotifications = notifications.filter(n => n.userId === currentUser.u);
+    
+    list.innerHTML = '';
+    
+    if (userNotifications.length === 0) {
+        list.innerHTML = '<div class="notification-item"><p style="text-align: center; color: var(--text-light);">Aucune notification</p></div>';
+        return;
+    }
+    
+    // Afficher les notifications (les plus récentes en premier)
+    userNotifications.reverse().forEach(notification => {
+        let item = document.createElement('div');
+        item.className = `notification-item ${notification.read ? '' : 'unread'}`;
+        item.innerHTML = `
+            <div style="display: flex; align-items: start; gap: 10px;">
+                <i class="fas fa-${notification.type === 'success' ? 'check-circle' : notification.type === 'error' ? 'exclamation-circle' : 'info-circle'}" 
+                   style="color: ${notification.type === 'success' ? 'var(--success)' : notification.type === 'error' ? 'var(--danger)' : 'var(--info)'}"></i>
+                <div>
+                    <h5 style="margin: 0 0 5px 0;">${notification.title}</h5>
+                    <p style="margin: 0; font-size: 0.9rem;">${notification.message}</p>
+                    <small style="color: var(--text-light);">${notification.timestamp}</small>
+                </div>
+            </div>
+        `;
+        
+        item.onclick = () => {
+            notification.read = true;
+            if (!isDemoMode) {
+                localStorage.setItem("notifications", JSON.stringify(notifications));
+            }
+            updateNotificationBadge();
+            loadNotifications();
+        };
+        
+        list.appendChild(item);
+    });
+}
+
+// ================================
+// CHATBOT
+// ================================
+
+function toggleChatbot() {
+    document.getElementById('chatbot').classList.toggle('show');
+}
+
+function sendChatMessage() {
+    let input = document.getElementById('chatInput');
+    let message = input.value.trim();
+    
+    if (!message) return;
+    
+    // Ajouter le message de l'utilisateur
+    addChatMessage(message, 'user');
+    input.value = '';
+    
+    // Réponse du chatbot
+    setTimeout(() => {
+        let response = getChatbotResponse(message);
+        addChatMessage(response, 'bot');
+    }, 500);
+}
+
+function addChatMessage(text, sender) {
+    let container = document.getElementById('chatMessages');
+    let messageDiv = document.createElement('div');
+    messageDiv.className = `message ${sender}`;
+    messageDiv.textContent = text;
+    container.appendChild(messageDiv);
+    container.scrollTop = container.scrollHeight;
+}
+
+function getChatbotResponse(message) {
+    message = message.toLowerCase();
+    
+    if (message.includes('bonjour') || message.includes('salut') || message.includes('hello')) {
+        return "Bonjour ! Comment puis-je vous aider aujourd'hui ?";
+    } else if (message.includes('solde') || message.includes('argent')) {
+        return `Votre solde actuel est de ${currentUser ? currentUser.s.toFixed(2) + ' MAD' : 'non disponible'}.`;
+    } else if (message.includes('virement') || message.includes('envoyer')) {
+        return "Pour effectuer un virement, allez dans la section 'Virement' du dashboard.";
+    } else if (message.includes('épargne') || message.includes('économiser')) {
+        return "Le compte épargne rapporte 2.5% d'intérêt annuel. Vous pouvez y transférer de l'argent depuis la section 'Épargne'.";
+    } else if (message.includes('prêt') || message.includes('emprunter')) {
+        return "Vous pouvez demander un prêt jusqu'à 100 000 MAD dans la section 'Prêt'.";
+    } else if (message.includes('merci')) {
+        return "Je vous en prie ! N'hésitez pas si vous avez d'autres questions.";
+    } else {
+        return "Je suis désolé, je ne comprends pas. Je peux vous aider avec les soldes, virements, épargne ou prêts.";
+    }
+}
+
+// ================================
+// THÈME
+// ================================
+
+function toggleTheme() {
+    document.body.classList.toggle('dark-theme');
+    localStorage.setItem('theme', document.body.classList.contains('dark-theme') ? 'dark' : 'light');
+    
+    let icon = document.querySelector('#themeToggle i');
+    if (document.body.classList.contains('dark-theme')) {
+        icon.className = 'fas fa-sun';
+        document.querySelector('#themeToggle').innerHTML = '<i class="fas fa-sun"></i> Thème';
+    } else {
+        icon.className = 'fas fa-moon';
+        document.querySelector('#themeToggle').innerHTML = '<i class="fas fa-moon"></i> Thème';
+    }
+}
+
+// ================================
+// ADMIN
+// ================================
+
+function updateAdminPanel() {
+    if (!currentUser || currentUser.u !== 'admin') {
+        showSection('dashboard');
+        return;
+    }
+    
+    // Statistiques
+    document.getElementById('adminUsers').textContent = users.length;
+    
+    let totalDeposits = users.reduce((sum, user) => sum + user.s + (user.s_epargne || 0), 0);
+    document.getElementById('adminDeposits').textContent = totalDeposits.toFixed(2) + ' MAD';
+    
+    let totalTransactions = users.reduce((sum, user) => sum + (user.h ? user.h.length : 0), 0);
+    document.getElementById('adminTransactions').textContent = totalTransactions;
+    
+    // Liste des utilisateurs
+    let list = document.getElementById('adminUsersList');
+    list.innerHTML = '';
+    
+    users.forEach(user => {
+        let card = document.createElement('div');
+        card.className = 'card';
+        card.style.margin = '10px 0';
+        card.innerHTML = `
+            <h4>${user.u} <small>(${user.email})</small></h4>
+            <p>Solde: ${user.s.toFixed(2)} MAD | Épargne: ${(user.s_epargne || 0).toFixed(2)} MAD</p>
+            <p>Transactions: ${user.h ? user.h.length : 0}</p>
+        `;
+        list.appendChild(card);
+    });
+}
+
+function exportAllData() {
+    let data = {
+        users: users,
+        loanRequests: loanRequests,
+        notifications: notifications,
+        badges: badges,
+        budgets: budgets,
+        goals: goals
+    };
+    
+    let dataStr = JSON.stringify(data, null, 2);
+    let dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+    
+    let exportFileDefaultName = 'banque-khalil-data.json';
+    
+    let linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
+    
+    showMessage('admin', "Données exportées avec succès", "success");
+}
+
+function clearAllData() {
+    if (confirm("Êtes-vous sûr de vouloir réinitialiser toutes les données ? Cette action est irréversible.")) {
+        localStorage.clear();
+        users = [];
+        loanRequests = [];
+        notifications = [];
+        badges = {};
+        budgets = {};
+        goals = [];
+        
+        location.reload();
+    }
+}
+
+// ================================
+// EXPORT
+// ================================
+
+function exportPDF() {
+    // Simulation d'export PDF
+    showMessage('dashboard', "Fonctionnalité PDF en développement", "info");
+}
+
+function exportCSV() {
+    if (!currentUser) return;
+    
+    let csvContent = "Date,Description,Montant\n";
+    
+    currentUser.h.forEach(transaction => {
+        let date = new Date().toLocaleDateString('fr-FR');
+        let amount = transaction.match(/[+-]?\d+(\.\d+)?MAD/)?.[0] || "0MAD";
+        csvContent += `${date},"${transaction}",${amount}\n`;
+    });
+    
+    let blob = new Blob([csvContent], { type: 'text/csv' });
+    let url = window.URL.createObjectURL(blob);
+    let a = document.createElement('a');
+    a.href = url;
+    a.download = `transactions-${currentUser.u}-${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+    
+    showMessage('dashboard', "Fichier CSV téléchargé", "success");
+}
+
+function showAllTransactions() {
+    if (!currentUser) return;
+    
+    let histList = document.getElementById('hist');
+    histList.innerHTML = '';
+    
+    currentUser.h.slice().reverse().forEach(transaction => {
+        let li = document.createElement('li');
+        li.innerHTML = `<i class="fas fa-exchange-alt"></i> ${transaction}`;
+        histList.appendChild(li);
+    });
+    
+    // Animer l'apparition
+    setTimeout(() => {
+        Array.from(histList.children).forEach((child, index) => {
+            setTimeout(() => {
+                child.style.opacity = '1';
+                child.style.transform = 'translateX(0)';
+            }, index * 50);
+        });
+    }, 100);
+}
+
+// ================================
+// DASHBOARD
+// ================================
+
+function updateDashboard() {
+    if (!currentUser) return;
+    
+    // Mettre à jour les soldes
+    animateCount('solde', currentUser.s);
+    animateCount('soldeCourant', currentUser.s);
+    animateCount('soldeEpargne', currentUser.s_epargne || 0);
+    animateCount('totalEpargne', currentUser.s_epargne || 0);
+    
+    // Calculer les intérêts mensuels
+    if (currentUser.s_epargne > 0) {
+        let interetsMensuels = (currentUser.s_epargne * 0.025) / 12;
+        document.getElementById('interetsMensuels').innerText = interetsMensuels.toFixed(2) + ' MAD';
+    }
+    
+    // Mettre à jour l'historique
+    let histList = document.getElementById('hist');
+    histList.innerHTML = '';
+    
+    let recentTransactions = currentUser.h.slice(-5).reverse();
+    recentTransactions.forEach(transaction => {
+        let li = document.createElement('li');
+        li.innerHTML = `<i class="fas fa-exchange-alt"></i> ${transaction}`;
+        histList.appendChild(li);
+    });
+    
+    // Animer l'apparition
+    setTimeout(() => {
+        Array.from(histList.children).forEach((child, index) => {
+            setTimeout(() => {
+                child.style.opacity = '1';
+                child.style.transform = 'translateX(0)';
+            }, index * 100);
+        });
+    }, 100);
+    
+    // Mettre à jour les badges
+    updateBadgesDisplay();
+    
+    // Mettre à jour les notifications
+    updateNotificationBadge();
+}
+
+// ================================
+// GRAPHIQUES
+// ================================
+
+function initChart() {
+    let ctx = document.getElementById('soldeChart').getContext('2d');
+    
+    if (chart) {
+        chart.destroy();
+    }
+    
+    // Préparer les données pour les deux comptes
+    let labels = currentUser.soldeHistory.map((_, i) => `T${i + 1}`);
+    let soldeData = currentUser.soldeHistory;
+    
+    // Calculer les données pour l'épargne (si disponible)
+    let epargneData = [];
+    let epargneCumul = 0;
+    
+    for (let i = 0; i < currentUser.h.length; i++) {
+        if (currentUser.h[i].includes('Épargne: +')) {
+            let match = currentUser.h[i].match(/[\d\.]+/);
+            if (match) epargneCumul += parseFloat(match[0]);
+        } else if (currentUser.h[i].includes('Retrait épargne')) {
+            let match = currentUser.h[i].match(/[\d\.]+/);
+            if (match) epargneCumul -= parseFloat(match[0]);
+        }
+        epargneData.push(epargneCumul);
+    }
+    
+    // Ajuster la longueur des données
+    while (epargneData.length < soldeData.length) {
+        epargneData.push(epargneCumul);
+    }
+    
+    chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Compte Courant (MAD)',
+                    data: soldeData,
+                    borderColor: '#FF7A00',
+                    backgroundColor: 'rgba(255, 122, 0, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                },
+                {
+                    label: 'Compte Épargne (MAD)',
+                    data: epargneData,
+                    borderColor: '#28a745',
+                    backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: false,
+                    ticks: {
+                        callback: function(value) {
+                            return value + ' MAD';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+function updateChart() {
+    if (!chart || !currentUser) return;
+    
+    let labels = currentUser.soldeHistory.map((_, i) => `T${i + 1}`);
+    
+    // Recalculer les données d'épargne
+    let epargneData = [];
+    let epargneCumul = 0;
+    
+    for (let i = 0; i < currentUser.h.length; i++) {
+        if (currentUser.h[i].includes('Épargne: +')) {
+            let match = currentUser.h[i].match(/[\d\.]+/);
+            if (match) epargneCumul += parseFloat(match[0]);
+        } else if (currentUser.h[i].includes('Retrait épargne')) {
+            let match = currentUser.h[i].match(/[\d\.]+/);
+            if (match) epargneCumul -= parseFloat(match[0]);
+        }
+        epargneData.push(epargneCumul);
+    }
+    
+    while (epargneData.length < currentUser.soldeHistory.length) {
+        epargneData.push(epargneCumul);
+    }
+    
+    chart.data.labels = labels;
+    chart.data.datasets[0].data = currentUser.soldeHistory;
+    chart.data.datasets[1].data = epargneData;
+    chart.update();
+}
+
+// ================================
+// CONTACT
+// ================================
+
+async function sendContact() {
+    let name = document.getElementById('c_name').value.trim();
+    let email = document.getElementById('c_email').value.trim();
+    let msg = document.getElementById('c_msg').value.trim();
+    
+    if (!name || !email || !msg) {
+        showMessage('contactMsg', 'Veuillez remplir tous les champs', 'error');
+        return;
+    }
+
+    try {
+        const response = await fetch('https://formspree.io/f/xjknzjew', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name: name,
+                email: email,
+                message: msg
+            })
+        });
+
+        if (response.ok) {
+            showMessage('contactMsg', `Merci ${name}, votre message a été envoyé. Nous vous répondrons à ${email} sous 24h.`, 'success');
+            
+            // Réinitialiser les champs
+            document.getElementById('c_name').value = '';
+            document.getElementById('c_email').value = '';
+            document.getElementById('c_msg').value = '';
+        } else {
+            showMessage('contactMsg', 'Erreur lors de l\'envoi du message. Réessayez plus tard.', 'error');
+        }
+    } catch (error) {
+        showMessage('contactMsg', 'Erreur réseau. Réessayez plus tard.', 'error');
+        console.error(error);
+    }
+}
+
+
+// ================================
+// INITIALISATION
+// ================================
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Restaurer le thème
+    let savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+        document.body.classList.add('dark-theme');
+        document.querySelector('#themeToggle i').className = 'fas fa-sun';
+    }
+    
+    // Restaurer la session
+    let lastUser = localStorage.getItem('lastUser');
+    if (lastUser) {
+        currentUser = users.find(x => x.u === lastUser);
+        if (currentUser) {
+            document.getElementById('userName').innerText = currentUser.u;
+            initChart();
+            updateDashboard();
+            document.getElementById("loginSection").classList.add("hidden");
+            document.getElementById("navSecu").classList.remove("hidden");
+            document.getElementById("headerControls").classList.remove("hidden");
+            
+            // Afficher les boutons supplémentaires
+            ["navLoan", "navSavings", "navBudget", "navGoals", "navInvest"].forEach(id => {
+                document.getElementById(id)?.classList.remove("hidden");
+            });
+            
+            showSection("dashboard");
+        }
+    }
+    
+    // Focus sur le premier champ de connexion
+    document.getElementById('l_user')?.focus();
+    
+    // Gestion des entrées avec la touche Entrée
+    document.getElementById('l_pass')?.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') login();
+    });
+    
+    document.getElementById('r_pass')?.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') register();
+    });
+    
+    document.getElementById('gab_pin')?.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') gabLogin();
+    });
+    
+    document.getElementById('chatInput')?.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') sendChatMessage();
+    });
+    
+    // Fermer les panels en cliquant à l'extérieur
+    document.addEventListener('click', function(event) {
+        let notificationsPanel = document.getElementById('notificationsPanel');
+        let notificationsBtn = document.getElementById('notificationsBtn');
+        
+        if (notificationsPanel.classList.contains('show') && 
+            !notificationsPanel.contains(event.target) && 
+            !notificationsBtn.contains(event.target)) {
+            notificationsPanel.classList.remove('show');
+        }
+        
+        let chatbot = document.getElementById('chatbot');
+        if (chatbot.classList.contains('show') && 
+            !chatbot.contains(event.target) && 
+            !event.target.closest('.control-btn')) {
+            chatbot.classList.remove('show');
+        }
+    });
+});
+</script>
+
+</body>
+</html>
